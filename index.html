@@ -8,21 +8,37 @@ document.getElementById("fileInput").addEventListener("change", async (event) =>
     const formData = new FormData();
     formData.append("file", file);
 
-    const options = {
-        method: "POST",
-        headers: {
-            "x-apikey": "YOUR_API_KEY_HERE"
-            // Do NOT set content-type manually
-        },
-        body: formData
-    };
-
     try {
-        const res = await fetch("https://www.virustotal.com/api/v3/files", options);
-        const data = await res.json();
-        console.log(data);
+        // 1. Upload file
+        const uploadRes = await fetch("https://www.virustotal.com/api/v3/files", {
+            method: "POST",
+            headers: {
+                "x-apikey": "YOUR_API_KEY_HERE"
+            },
+            body: formData
+        });
+
+        const uploadData = await uploadRes.json();
+        console.log("Upload response:", uploadData);
+
+        const analysisId = uploadData.data.id;
+        console.log("Analysis ID:", analysisId);
+
+        // 2. Poll for results
+        const reportRes = await fetch(
+            `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
+            {
+                headers: { "x-apikey": "YOUR_API_KEY_HERE" }
+            }
+        );
+
+        const reportData = await reportRes.json();
+        console.log("Scan report:", reportData);
+
     } catch (err) {
-        console.error("Upload error:", err);
+        console.error("Error:", err);
     }
 });
 </script>
+
+        
