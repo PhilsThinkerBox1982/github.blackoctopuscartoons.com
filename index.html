@@ -1,3 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#spinner {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  margin-top: 20px;
+}
+</style>
+
+</head>
+<body>
+<div id="spinner" style="display:none;">
+  <div class="loader"></div>
+  <p>Scanning… please wait</p>
+</div>
+
 <input type="file" id="fileInput">
 <div id="results"></div>
 <script>
@@ -6,7 +39,11 @@ document.getElementById("fileInput").addEventListener("change", async (event) =>
     if (!file) return;
 
     const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = "<p>Uploading file…</p>";
+    const spinner = document.getElementById("spinner");
+
+    // Show spinner
+    spinner.style.display = "block";
+    resultsDiv.innerHTML = "";
 
     const formData = new FormData();
     formData.append("file", file);
@@ -24,8 +61,6 @@ document.getElementById("fileInput").addEventListener("change", async (event) =>
         const uploadData = await uploadRes.json();
         const analysisId = uploadData.data.id;
 
-        resultsDiv.innerHTML = "<p>File uploaded. Scanning…</p>";
-
         // 2. Get scan results
         const reportRes = await fetch(
             `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
@@ -35,8 +70,10 @@ document.getElementById("fileInput").addEventListener("change", async (event) =>
         );
 
         const reportData = await reportRes.json();
-
         const stats = reportData.data.attributes.stats;
+
+        // Hide spinner
+        spinner.style.display = "none";
 
         // 3. Display results
         resultsDiv.innerHTML = `
@@ -49,8 +86,13 @@ document.getElementById("fileInput").addEventListener("change", async (event) =>
 
     } catch (err) {
         console.error("Error:", err);
+        spinner.style.display = "none";
         resultsDiv.innerHTML = "<p style='color:red;'>Error scanning file.</p>";
     }
 });
 </script>
 
+   
+            
+</body>
+</html>
