@@ -1,9 +1,12 @@
 <input type="file" id="fileInput">
-
+<div id="results"></div>
 <script>
 document.getElementById("fileInput").addEventListener("change", async (event) => {
     const file = event.target.files[0];
     if (!file) return;
+
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "<p>Uploading file…</p>";
 
     const formData = new FormData();
     formData.append("file", file);
@@ -19,12 +22,11 @@ document.getElementById("fileInput").addEventListener("change", async (event) =>
         });
 
         const uploadData = await uploadRes.json();
-        console.log("Upload response:", uploadData);
-
         const analysisId = uploadData.data.id;
-        console.log("Analysis ID:", analysisId);
 
-        // 2. Poll for results
+        resultsDiv.innerHTML = "<p>File uploaded. Scanning…</p>";
+
+        // 2. Get scan results
         const reportRes = await fetch(
             `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
             {
@@ -33,12 +35,22 @@ document.getElementById("fileInput").addEventListener("change", async (event) =>
         );
 
         const reportData = await reportRes.json();
-        console.log("Scan report:", reportData);
+
+        const stats = reportData.data.attributes.stats;
+
+        // 3. Display results
+        resultsDiv.innerHTML = `
+            <h3>Scan Results</h3>
+            <p><strong>Malicious:</strong> ${stats.malicious}</p>
+            <p><strong>Suspicious:</strong> ${stats.suspicious}</p>
+            <p><strong>Harmless:</strong> ${stats.harmless}</p>
+            <p><strong>Undetected:</strong> ${stats.undetected}</p>
+        `;
 
     } catch (err) {
         console.error("Error:", err);
+        resultsDiv.innerHTML = "<p style='color:red;'>Error scanning file.</p>";
     }
 });
 </script>
 
-        
